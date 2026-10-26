@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trắc nghiệm công nghệ cấy truyền phôi</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; display: grid; place-items: center;
+    padding: 20px; background: #dff6e8; font-family: Arial, sans-serif; color: #28213d;
+  }
+  .quiz { width: min(760px, 100%); }
+  .topline { display:flex; justify-content:space-between; gap:12px; color:#51466f; font-weight:700; margin:0 4px 12px; }
+  .card {
+    background: #7856c9; color: white; border-radius: 26px; padding: clamp(22px, 5vw, 42px);
+    box-shadow: 0 14px 32px rgba(64, 43, 120, .18); min-height: 390px;
+  }
+  .tag { display:inline-block; background:rgba(255,255,255,.18); padding:7px 12px; border-radius:999px; font-size:13px; font-weight:bold; }
+  h1 { font-size:clamp(24px, 4vw, 34px); margin:18px 0 12px; line-height:1.2; }
+  .hint { color:#eee7ff; margin:0 0 22px; line-height:1.5; }
+  .answers { display:grid; gap:11px; }
+  .answer {
+    display:flex; align-items:flex-start; gap:12px; padding:14px 15px; border-radius:14px;
+    background:#fff; color:#302746; cursor:pointer; border:2px solid transparent; line-height:1.4;
+  }
+  .answer:hover { border-color:#ffc2df; }
+  .answer input { margin-top:3px; accent-color:#7856c9; }
+  .answer.correct { border-color:#39a96b; background:#e9fff1; }
+  .answer.wrong { border-color:#e65b76; background:#fff0f3; }
+  .actions { display:flex; gap:12px; flex-wrap:wrap; margin-top:22px; }
+  button {
+    border:0; border-radius:999px; padding:13px 23px; font-size:16px; font-weight:800; cursor:pointer;
+  }
+  #submit { background:#ff8fc3; color:#38213a; }
+  #next, #restart { background:#fff; color:#5a3da0; }
+  button:disabled { opacity:.55; cursor:not-allowed; }
+  #feedback { min-height:28px; margin-top:16px; font-weight:700; line-height:1.5; }
+  .footer { text-align:center; color:#51466f; font-size:13px; margin-top:12px; }
+  .hidden { display:none !important; }
+  .result { text-align:center; padding:35px 8px; }
+  .result .score { font-size:clamp(32px, 6vw, 48px); font-weight:900; margin:22px 0; }
+</style>
+</head>
+<body>
+<main class="quiz">
+  <div class="topline"><span>TRẮC NGHIỆM SINH HỌC</span><span id="progress">Câu 1/6</span></div>
+  <section class="card" id="questionCard">
+    <span class="tag">CÔNG NGHỆ CẤY TRUYỀN PHÔI</span>
+    <h1 id="question"></h1>
+    <p class="hint" id="hint">Chọn một đáp án đúng rồi nhấn SUBMIT.</p>
+    <form id="answers" class="answers"></form>
+    <div class="actions">
+      <button id="submit" type="button">SUBMIT</button>
+      <button id="next" type="button" class="hidden">CÂU TIẾP THEO →</button>
+    </div>
+    <div id="feedback" aria-live="polite"></div>
+  </section>
+  <section class="card result hidden" id="resultCard">
+    <span class="tag">HOÀN THÀNH</span>
+    <h1>Bạn đã hoàn thành bài trắc nghiệm!</h1>
+    <div class="score" id="score"></div>
+    <p id="summary"></p>
+    <div class="actions" style="justify-content:center"><button id="restart" type="button">LÀM LẠI</button></div>
+  </section>
+  <div class="footer">Chọn đáp án → Submit → Câu tiếp theo xuất hiện ngay trong khung này.</div>
+</main>
+<script>
+const quizData = [
+  {
+    q: "Công nghệ cấy truyền phôi là gì?",
+    options: [
+      "Chuyển phôi từ con cái cho phôi sang con cái nhận phôi",
+      "Chuyển tinh trùng từ con đực sang con cái",
+      "Nuôi con non trong môi trường nhân tạo",
+      "Nhân bản vật nuôi bằng cách tách tế bào"
+    ], answer: 0,
+    explain: "Đúng! Phôi được tạo ra từ con cái cho phôi, sau đó chuyển vào con cái nhận phôi để tiếp tục phát triển."
+  },
+  {
+    q: "Con cái được chọn để tạo ra phôi có đặc tính di truyền tốt gọi là gì?",
+    options: ["Con nhận phôi", "Con cho phôi", "Con nuôi", "Con lai"],
+    answer: 1,
+    explain: "Đúng! Con cho phôi thường là cá thể có giá trị di truyền tốt được chọn để tạo phôi."
+  },
+  {
+    q: "Vai trò chính của con cái nhận phôi là gì?",
+    options: [
+      "Cung cấp tinh trùng",
+      "Tạo ra toàn bộ vật chất di truyền của phôi",
+      "Tiếp nhận phôi và mang thai",
+      "Quyết định giới tính của phôi sau khi chuyển"
+    ], answer: 2,
+    explain: "Đúng! Con nhận phôi cung cấp môi trường tử cung để phôi làm tổ và phát triển."
+  },
+  {
+    q: "Lợi ích nổi bật của công nghệ cấy truyền phôi trong chăn nuôi là gì?",
+    options: [
+      "Tăng nhanh số con sinh ra từ con cái có giá trị di truyền cao",
+      "Không cần chăm sóc vật nuôi",
+      "Đảm bảo tất cả phôi đều phát triển thành con non",
+      "Loại bỏ hoàn toàn mọi bệnh ở vật nuôi"
+    ], answer: 0,
+    explain: "Đúng! Công nghệ này giúp nhân nhanh đàn con từ những cá thể có đặc tính di truyền tốt."
+  },
+  {
+    q: "Đúng hay sai: Con nhận phôi cung cấp môi trường tử cung, nhưng không nhất thiết là nguồn gốc di truyền của phôi.",
+    options: ["Đúng", "Sai"], answer: 0,
+    explain: "Đúng! Vật chất di truyền của phôi chủ yếu đến từ trứng và tinh trùng; con nhận phôi mang thai hộ."
+  },
+  {
+    q: "Đúng hay sai: Hiệu quả cấy truyền phôi có thể phụ thuộc vào chất lượng phôi và điều kiện kỹ thuật.",
+    options: ["Đúng", "Sai"], answer: 0,
+    explain: "Đúng! Chất lượng phôi, sự đồng bộ sinh sản và kỹ thuật chuyển phôi đều ảnh hưởng đến kết quả."
+  }
+];
+let current = 0, score = 0, answered = false;
+const qEl = document.getElementById('question');
+const form = document.getElementById('answers');
+const progress = document.getElementById('progress');
+const feedback = document.getElementById('feedback');
+const submit = document.getElementById('submit');
+const next = document.getElementById('next');
+
+function renderQuestion() {
+  answered = false;
+  const item = quizData[current];
+  progress.textContent = `Câu ${current + 1}/${quizData.length}`;
+  qEl.textContent = item.q;
+  feedback.textContent = '';
+  form.innerHTML = '';
+  item.options.forEach((option, index) => {
+    const label = document.createElement('label');
+    label.className = 'answer';
+    label.innerHTML = `<input type="radio" name="answer" value="${index}"><span>${String.fromCharCode(65 + index)}. ${option}</span>`;
+    form.appendChild(label);
+  });
+  submit.classList.remove('hidden');
+  submit.disabled = false;
+  next.classList.add('hidden');
+}
+submit.addEventListener('click', () => {
+  if (answered) return;
+  const selected = form.querySelector('input[name="answer"]:checked');
+  if (!selected) { feedback.textContent = 'Bạn hãy chọn một đáp án trước nhé!'; return; }
+  answered = true;
+  const item = quizData[current];
+  const chosen = Number(selected.value);
+  if (chosen === item.answer) { score++; feedback.textContent = '✓ Chính xác! ' + item.explain; }
+  else { feedback.textContent = 'Chưa chính xác. Đáp án đúng là ' + String.fromCharCode(65 + item.answer) + '. ' + item.explain; }
+  [...form.querySelectorAll('.answer')].forEach((label, index) => {
+    if (index === item.answer) label.classList.add('correct');
+    if (index === chosen && chosen !== item.answer) label.classList.add('wrong');
+    label.querySelector('input').disabled = true;
+  });
+  submit.classList.add('hidden');
+  next.textContent = current === quizData.length - 1 ? 'XEM KẾT QUẢ →' : 'CÂU TIẾP THEO →';
+  next.classList.remove('hidden');
+});
+next.addEventListener('click', () => {
+  if (current < quizData.length - 1) { current++; renderQuestion(); }
+  else {
+    document.getElementById('questionCard').classList.add('hidden');
+    document.getElementById('resultCard').classList.remove('hidden');
+    progress.textContent = 'Kết quả';
+    document.getElementById('score').textContent = `${score}/${quizData.length} điểm`;
+    document.getElementById('summary').textContent = score === quizData.length ? 'Xuất sắc! Bạn trả lời đúng tất cả câu hỏi.' : 'Hãy xem lại phần giải thích và thử lại nhé!';
+  }
+});
+document.getElementById('restart').addEventListener('click', () => {
+  current = 0; score = 0;
+  document.getElementById('resultCard').classList.add('hidden');
+  document.getElementById('questionCard').classList.remove('hidden');
+  renderQuestion();
+});
+renderQuestion();
+</script>
+</body>
+</html>
